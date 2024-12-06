@@ -1,9 +1,13 @@
 #include <pthread.h>
 #include <iostream>
 #include <queue>
+#include <random>
+#include <thread>
+#include <chrono>
 #include "monitor.h"
 
-std::queue<int> buffer;
+
+std::queue<unsigned int> buffer;
 
 Semaphore mutex(1);
 Semaphore prodEvenMutex(0);
@@ -11,9 +15,9 @@ Semaphore prodOddMutex(0);
 Semaphore conEvenMutex(0);
 Semaphore conOddMutex(0);
 
-unsigned int prodEvenWaiting = 0, prodOddWaiting = 0, conEvenWaiting = 0,
-             conOddWaiting = 0, nextEven = 0, nextOdd = 1, evenCount = 0,
-             oddCount = 0;
+unsigned int prodEvenWaiting = 0u, prodOddWaiting = 0u, conEvenWaiting = 0u,
+             conOddWaiting = 0u, nextEven = 0u, nextOdd = 1u, evenCount = 0u,
+             oddCount = 0u;
 
 bool canProdEven() {
   return evenCount < 10;
@@ -41,7 +45,7 @@ void* prodEven(void*) {
       --prodEvenWaiting;
     }
 
-    int element = nextEven;
+    unsigned int element = nextEven;
     nextEven = (nextEven + 2) % 50;
     buffer.push(element);
 
@@ -58,6 +62,7 @@ void* prodEven(void*) {
     } else {
       mutex.v();
     }
+  	std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
   }
 }
 
@@ -72,8 +77,8 @@ void* prodOdd(void*) {
       --prodOddWaiting;
     }
 
-    int element = nextOdd;
-    nextEven = (nextOdd + 2) % 50;
+    unsigned int element = nextOdd;
+    nextOdd = (nextOdd + 2) % 50;
     buffer.push(element);
     ++oddCount;
 
@@ -88,6 +93,7 @@ void* prodOdd(void*) {
     } else {
       mutex.v();
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
   }
 }
 
@@ -102,7 +108,7 @@ void* conEven(void*) {
       --conEvenWaiting;
     }
 
-    int element = buffer.front();
+    unsigned int element = buffer.front();
     buffer.pop();
     --evenCount;
 
@@ -111,12 +117,13 @@ void* conEven(void*) {
     if (prodOddWaiting > 0u && canProdOdd()) {
       prodOddMutex.v();
     } else if (prodEvenWaiting > 0u && canProdEven()) {
-      conEvenMutex.v();
+      prodEvenMutex.v();
     } else if (conOddWaiting > 0u && canConOdd()) {
       conOddMutex.v();
     } else {
       mutex.v();
     }
+  	std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
   }
 }
 
@@ -131,7 +138,7 @@ void* conOdd(void*) {
       --conOddWaiting;
     }
 
-    int element = buffer.front();
+    unsigned int element = buffer.front();
     buffer.pop();
     --oddCount;
 
@@ -140,48 +147,98 @@ void* conOdd(void*) {
     if (prodOddWaiting > 0u && canProdOdd()) {
       prodOddMutex.v();
     } else if (prodEvenWaiting > 0u && canProdEven()) {
-      conEvenMutex.v();
+      prodEvenMutex.v();
     } else if (conEvenWaiting > 0u && canConEven()) {
       conEvenMutex.v();
     } else {
       mutex.v();
     }
+  	std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
   }
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 5) {
-    printf("4 arguments required: prod_even prod_odd cons_even cons_odd\n");
+  if (argc < 2) {
+    printf("1 argument required: test_num\n");
     return 1;
   }
 
-  int thread_count = 0;
+  int testNum = atoi(argv[1]);
+  pthread_t threads[8];
+  int threadNum;
 
-  for (int i = 1; i < argc; ++i) {
-    thread_count += atoi(argv[i]);
-  }
+  switch (testNum) {
+    case 1:
+      std::cout << "1 prod even" << std::endl;
+      pthread_create(&threads[0], NULL, &prodEven, NULL);
+      threadNum = 1;
+      break;
+    case 2:
+      std::cout << "1 prod odd" << std::endl;
+      pthread_create(&threads[0], NULL, &prodOdd, NULL);
+      threadNum = 1;
+      break;
+    case 3:
+      std::cout << "1 cons even" << std::endl;
+      pthread_create(&threads[0], NULL, &conEven, NULL);
+      threadNum = 1;
+      break;
+    case 4:
+      std::cout << "1 cons odd" << std::endl;
+      pthread_create(&threads[0], NULL, &conOdd, NULL);
+      threadNum = 1;
+      break;
+    case 5:
+      std::cout << "1 prod even + 1 prod odd" << std::endl;
+      pthread_create(&threads[0], NULL, &prodEven, NULL);
+      pthread_create(&threads[1], NULL, &prodOdd, NULL);
+      threadNum = 2;
+      break;
+    case 6:
+      std::cout << "1 cons even + 1 cons odd" << std::endl;
+      pthread_create(&threads[0], NULL, &conEven, NULL);
+      pthread_create(&threads[1], NULL, &conOdd, NULL);
+      threadNum = 2;
+      break;
+    case 7:
+      std::cout << "1 prod even + 1 cons even" << std::endl;
+      pthread_create(&threads[0], NULL, &prodEven, NULL);
+      pthread_create(&threads[1], NULL, &conEven, NULL);
+      threadNum = 2;
+      break;
+    case 8:
+      std::cout << "1 prod odd + 1 cons odd" << std::endl;
+      pthread_create(&threads[0], NULL, &prodOdd, NULL);
+      pthread_create(&threads[1], NULL, &conOdd, NULL);
+      threadNum = 2;
+      break;
+    case 9:
+      std::cout << "1 prod even + 1 prod odd + 1 cons even + 1 cons odd" << std::endl;
+      pthread_create(&threads[0], NULL, &prodEven, NULL);
+      pthread_create(&threads[1], NULL, &prodOdd, NULL);
+      pthread_create(&threads[2], NULL, &conEven, NULL);
+      pthread_create(&threads[3], NULL, &conOdd, NULL);
+      threadNum = 4;
+      break;
+    case 10:
+      std::cout << "2 prod even + 2 prod odd + 2 cons even + 2 cons odd" << std::endl;
+      pthread_create(&threads[0], NULL, &prodEven, NULL);
+      pthread_create(&threads[1], NULL, &prodEven, NULL);
+      pthread_create(&threads[2], NULL, &prodOdd, NULL);
+      pthread_create(&threads[3], NULL, &prodOdd, NULL);
+      pthread_create(&threads[4], NULL, &conEven, NULL);
+      pthread_create(&threads[5], NULL, &conEven, NULL);
+      pthread_create(&threads[6], NULL, &conOdd, NULL);
+      pthread_create(&threads[7], NULL, &conOdd, NULL);
+      threadNum = 8;
+      break;
+    default:
+      std::cout << "Invalid test number" << std::endl;
+      return 1;
+      break;
+    }
 
-  pthread_t threads[thread_count];
-
-  int i = 0;
-
-  for (; i < atoi(argv[1]); ++i) {
-    pthread_create(threads + i, NULL, &prodEven, NULL);
-  }
-
-  for (; i < i + atoi(argv[2]); ++i) {
-    pthread_create(threads + i, NULL, &prodOdd, NULL);
-  }
-
-  for (; i < i + atoi(argv[3]); ++i) {
-    pthread_create(threads + i, NULL, &conEven, NULL);
-  }
-
-  for (; i < i + atoi(argv[4]); ++i) {
-    pthread_create(threads + i, NULL, &conOdd, NULL);
-  }
-
-  for (i = 0; i < thread_count; ++i) {
+  for (int i = 0; i < threadNum; ++i) {
     pthread_join(threads[i], NULL);
   }
 

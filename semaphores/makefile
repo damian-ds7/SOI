@@ -5,6 +5,8 @@ TARGET = semaphores
 SRCS = semaphores.cpp
 OBJS = $(SRCS:.cpp=.o)
 
+all: $(TARGET)
+
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
