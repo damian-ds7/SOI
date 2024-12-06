@@ -1,13 +1,9 @@
 CXX = g++
 CXXFLAGS = -Wall -std=c++17 -pthread
 
-TARGET = semaphores_threads
-
-SRCS = thread.cpp
-OBJS = $(SRCS1:.cpp=.o)
-
-sem: $(TARGET)
-all: threads procs
+TARGET = semaphores
+SRCS = semaphores.cpp
+OBJS = $(SRCS:.cpp=.o)
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
