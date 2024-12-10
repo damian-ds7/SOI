@@ -85,7 +85,7 @@ void* prodOdd(void*) {
     std::cout << "Produced odd: " << element << "\n";
 
     if (prodEvenWaiting > 0u && canProdEven()) {
-      prodOddMutex.v();
+      prodEvenMutex.v();
     } else if (conEvenWaiting > 0u && canConEven()) {
       conEvenMutex.v();
     } else if (conOddWaiting > 0u && canConOdd()) {
@@ -134,7 +134,7 @@ void* conOdd(void*) {
     if (!canConOdd()) {
       ++conOddWaiting;
       mutex.v();
-      conEvenMutex.p();
+        conOddMutex.p();
       --conOddWaiting;
     }
 
