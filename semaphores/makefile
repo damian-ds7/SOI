@@ -1,17 +1,25 @@
 CXX = g++
 CXXFLAGS = -Wall -std=c++17 -pthread
 
-TARGET = semaphores
-SRCS = semaphores.cpp
-OBJS = $(SRCS:.cpp=.o)
+TARGET1 = tests_empty
+TARGET2 = tests_full
 
-all: $(TARGET)
+SRCS_EMPTY = semaphores.cpp tests_empty.cpp
+SRCS_FULL = semaphores.cpp tests_full.cpp
 
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+OBJS_EMPTY = $(SRCS_EMPTY:.cpp=.o)
+OBJS_FULL = $(SRCS_FULL:.cpp=.o)
 
-%.o: %.cpp monitor.h
+all: $(TARGET1) $(TARGET2)
+
+$(TARGET1): $(OBJS_EMPTY)
+	$(CXX) $(CXXFLAGS) -o $(TARGET1) $(OBJS_EMPTY)
+
+$(TARGET2): $(OBJS_FULL)
+	$(CXX) $(CXXFLAGS) -o $(TARGET2) $(OBJS_FULL)
+
+%.o: %.cpp monitor.h semaphores.h
 	$(CXX) $(CXXFLAGS) -DDEBUG -g -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS_EMPTY) $(OBJS_FULL) $(TARGET1) $(TARGET2)
