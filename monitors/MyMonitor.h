@@ -1,6 +1,6 @@
 #pragma once
 
-#include <queue>
+#include <deque>
 #include "monitor.h"
 
 class MyMonitor : Monitor {
@@ -15,13 +15,18 @@ class MyMonitor : Monitor {
   void fillBoth();
 
  private:
-  std::queue<unsigned int> buffer;
+  std::deque<unsigned int> buffer;
   Condition prodEvenCond, prodOddCond, conEvenCond, conOddCond;
-  unsigned int nextEven = 0;
-  unsigned int nextOdd = 1;
+  unsigned int nextEven = 0u;
+  unsigned int nextOdd = 1u;
 
-  unsigned int evenCount = 0;
-  unsigned int oddCount = 0;
+  unsigned int evenCount = 0u;
+  unsigned int oddCount = 0u;
+
+  unsigned int prodEvenWaiting = 0u;
+  unsigned int prodOddWaiting = 0u;
+  unsigned int conEvenWaiting = 0u;
+  unsigned int conOddWaiting = 0u;
 
   bool canProdEven();
   bool canProdOdd();

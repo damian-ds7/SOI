@@ -4,7 +4,8 @@
 
 extern MyMonitor myMonitor;
 
-void* prodEven(void* arg);
-void* prodOdd(void* arg);
-void* conEven(void* arg);
-void* conOdd(void* arg);
+void sleepRandom();
+void prodEven();
+void prodOdd();
+void conEven();
+void conOdd();

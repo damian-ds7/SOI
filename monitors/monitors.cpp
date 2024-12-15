@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include <chrono>
-#include <iostream>
 #include <queue>
 #include <random>
 #include <thread>
@@ -8,30 +7,38 @@
 
 MyMonitor myMonitor;
 
-void* prodEven(void*) {
+void sleepRandom() {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<> dist(0.1, 1);
+
+  std::this_thread::sleep_for(std::chrono::duration<double>(dist(gen)));
+}
+
+void prodEven() {
   while (true) {
     myMonitor.prodEven();
-    std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
+    sleepRandom();
   }
 }
 
-void* prodOdd(void*) {
+void prodOdd() {
   while (true) {
     myMonitor.prodOdd();
-    std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
+    sleepRandom();
   }
 }
 
-void* conEven(void*) {
+void conEven() {
   while (true) {
     myMonitor.conEven();
-    std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
+    sleepRandom();
   }
 }
 
-void* conOdd(void*) {
+void conOdd() {
   while (true) {
     myMonitor.conOdd();
-    std::this_thread::sleep_for(std::chrono::milliseconds(random() % 1000));
+    sleepRandom();
   }
 }
